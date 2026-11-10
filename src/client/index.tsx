@@ -36,6 +36,8 @@ import {
 import { CSS } from './styles.js'
 import { positionModelMenu } from './menu-position.js'
 import { wrapNativeSelector } from './native-selector.js'
+import type { CompatibilityAction, CompatibilitySnapshot, CompatibilityTarget } from './compat-types.js'
+import { ProviderCompatibility } from './provider-settings.js'
 import {
   clampIndex,
   currentModel,
@@ -59,7 +61,7 @@ interface HostRpc {
 }
 
 /** Channel the Host half registers its guidance endpoints on. */
-const ADAPT_CHANNEL = '/dsh-reasoning-effort'
+const ADAPT_CHANNEL = '/light-dawn-reasoning-effort'
 
 /** One guidance result from the Host half. */
 interface AdaptGuidance {
@@ -86,6 +88,7 @@ interface AdaptGuidance {
 /** The client-facing guidance service (Client→Host over the Connection RPC). */
 interface AdaptationService {
   diagnose(provider: string, model: string): Promise<AdaptGuidance | null>
+  compatibility(action?: CompatibilityAction, target?: CompatibilityTarget): Promise<CompatibilitySnapshot | null>
   subscribe(listener: () => void): () => void
   getSnapshot(): number
   invalidate(): void
@@ -206,6 +209,7 @@ function makeAdaptationService(rpc: HostRpc | undefined): AdaptationService | nu
   }
   return {
     diagnose: (provider, model) => call<AdaptGuidance>('diagnose', { provider, model }),
+    compatibility: (action = 'status', target) => call<CompatibilitySnapshot>(`compat-${action}`, target),
     subscribe: (listener) => {
       listeners.add(listener)
       return () => { listeners.delete(listener) }
@@ -264,9 +268,9 @@ type ModelSeatProps = ModelSeatInjectedProps & PropsLocale<typeof NS>
 
 const SLOT = 'conversation.input.model'
 const SETTINGS_SLOT = 'settings.general.item'
-const ENABLED_STORAGE_KEY = 'dsh-reasoning-effort.enabled'
+const ENABLED_STORAGE_KEY = 'light-dawn-reasoning-effort.enabled'
 const LEGACY_ENABLED_STORAGE_KEY = '@dsh-external/dsh-reasoning-effort.enabled'
-const CHIBI_THUMB_STORAGE_KEY = 'dsh-reasoning-effort.chibi-thumb'
+const CHIBI_THUMB_STORAGE_KEY = 'light-dawn-reasoning-effort.chibi-thumb'
 export const inject = ['slots', 'sessions', 'modelDirectories', 'connection', 'locale', 'remote', 'remote.session']
 
 function readEnabledPreference(): boolean {
@@ -1368,16 +1372,23 @@ export function apply(ctx: ClientContext) {
     return () => window.removeEventListener('storage', syncStorage)
   }, 'reasoning-effort: preference sync')
 
+  ctx.slots.inject('settings.models.provider-card', () =>
+    ctx.slots.register(
+      { name: 'settings.models.provider-card', key: 'llm-pi-ai', locale: NS },
+      props => <ProviderCompatibility {...props} adapt={adapt} />,
+    ),
+  )
+
   ctx.slots.inject(SETTINGS_SLOT, () =>
     ctx.slots.register(
-      { name: SETTINGS_SLOT, id: 'reasoning-effort-enabled', order: 15, locale: NS },
+      { name: SETTINGS_SLOT, id: 'light-dawn-reasoning-effort-enabled', order: 15, locale: NS },
       ReasoningEffortSetting,
     ),
   )
 
   ctx.slots.inject(SETTINGS_SLOT, () =>
     ctx.slots.register(
-      { name: SETTINGS_SLOT, id: 'reasoning-effort-chibi-thumb', order: 16, locale: NS },
+      { name: SETTINGS_SLOT, id: 'light-dawn-reasoning-effort-chibi-thumb', order: 16, locale: NS },
       ChibiThumbSetting,
     ),
   )

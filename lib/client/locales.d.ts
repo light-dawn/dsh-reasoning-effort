@@ -1,8 +1,33 @@
 /** Locale dictionaries for the reasoning-effort model control and settings rows. */
 /** Namespace registered with DSH's client locale service. */
-export declare const NS = "reasoning-effort";
+export declare const NS = "light-dawn-reasoning-effort";
 /** Simplified Chinese dictionary and key-set source of truth. */
 export declare const zh: {
+    'compat.title': string;
+    'compat.description': string;
+    'compat.default': string;
+    'compat.active': string;
+    'compat.empty': string;
+    'compat.detected': string;
+    'compat.applied': string;
+    'compat.compatible': string;
+    'compat.conflict': string;
+    'compat.disabled': string;
+    'compat.unsupported': string;
+    'compat.failed': string;
+    'compat.paused': string;
+    'compat.fields': string;
+    'compat.repair': string;
+    'compat.restore': string;
+    'compat.enable': string;
+    'compat.restoreNote': string;
+    'compat.saving': string;
+    'compat.unsupportedModel': string;
+    'compat.field.efforts': string;
+    'compat.field.request': string;
+    'compat.field.format': string;
+    'compat.field.role': string;
+    'compat.field.history': string;
     'level.off': string;
     'level.minimal': string;
     'level.low': string;
@@ -89,6 +114,31 @@ export declare const zh: {
 export type ReasoningEffortLocaleKey = keyof typeof zh;
 /** English dictionary, checked against the Chinese key set. */
 export declare const en: {
+    'compat.title': string;
+    'compat.description': string;
+    'compat.default': string;
+    'compat.active': string;
+    'compat.empty': string;
+    'compat.detected': string;
+    'compat.applied': string;
+    'compat.compatible': string;
+    'compat.conflict': string;
+    'compat.disabled': string;
+    'compat.unsupported': string;
+    'compat.failed': string;
+    'compat.paused': string;
+    'compat.fields': string;
+    'compat.repair': string;
+    'compat.restore': string;
+    'compat.enable': string;
+    'compat.restoreNote': string;
+    'compat.saving': string;
+    'compat.unsupportedModel': string;
+    'compat.field.efforts': string;
+    'compat.field.request': string;
+    'compat.field.format': string;
+    'compat.field.role': string;
+    'compat.field.history': string;
     'level.off': string;
     'level.minimal': string;
     'level.low': string;
@@ -173,7 +223,7 @@ export declare const en: {
 };
 declare module '@deepseek-ai/dsh-client-ui-slots' {
     interface LocaleNamespaceMap {
-        'reasoning-effort': ReasoningEffortLocaleKey;
+        'light-dawn-reasoning-effort': ReasoningEffortLocaleKey;
     }
 }
 /** Translate function injected into components registered with this namespace. */

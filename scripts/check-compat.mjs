@@ -29,7 +29,7 @@ globalThis.window = {
 const host = await compile('host', 'src/index.ts')
 const nativeAdapter = await compile('native-selector', 'src/client/native-selector.tsx')
 const effortSelection = await compile('effort-selection', 'src/client/effort-selection.ts')
-const client = await compile('client', 'src/client/index.tsx', '\nexport { AdvancedModelSelect, NativeEffortPanel, makeAdaptationService, wrapNativeSelector, enabledStore };')
+const client = await compile('client', 'src/client/index.tsx', '\nexport { AdvancedModelSelect, NativeEffortPanel, ProviderCompatibility, makeAdaptationService, wrapNativeSelector, enabledStore };')
 
 async function diagnose(declaration, levels, model = 'custom-model') {
   let route
@@ -44,7 +44,7 @@ async function diagnose(declaration, levels, model = 'custom-model') {
   host.apply(ctx)
   const handlers = {}
   let response
-  const pending = route.handler({ method: 'POST', url: '/dsh-reasoning-effort/diagnose', headers: { 'content-type': 'application/json' }, on: (name, callback) => { handlers[name] = callback } }, {
+  const pending = route.handler({ method: 'POST', url: '/light-dawn-reasoning-effort/diagnose', headers: { 'content-type': 'application/json' }, on: (name, callback) => { handlers[name] = callback } }, {
     writeHead: code => assert.equal(code, 200), end: body => { response = JSON.parse(body).result.value },
   })
   handlers.data(Buffer.from(JSON.stringify({ type: 'client-request', rpcId: 'test', method: 'diagnose', payload: { provider: 'custom', model } })))
@@ -501,4 +501,58 @@ test('single named provider default stays the only choice', async () => {
   await act(async () => { option('High').props.onClick() })
   assert.deepEqual(selections, [])
   await act(async () => { tree.unmount() })
+})
+
+test('model settings enable exactly the addressed model and expose scoped restore', async () => {
+  const calls = []
+  let value = { enabled: true, writable: true, status: 'ready', owned: 0, models: [
+    { provider: 'custom', model: 'model-a', status: 'available', conflicts: [], managed: false },
+    { provider: 'other', model: 'model-b', status: 'available', conflicts: [], managed: false },
+  ] }
+  const adapt = client.makeAdaptationService({ call: async (channel, endpoint, payload) => {
+    calls.push({ channel, endpoint, payload })
+    if (endpoint === 'compat-enable-model') value = { ...value, owned: 4, models: [{ ...value.models[0], status: 'applied', managed: true }, value.models[1]] }
+    if (endpoint === 'compat-restore-model') value = { ...value, owned: 0, models: [{ ...value.models[0], status: 'available', managed: false }, value.models[1]] }
+    return { ok: true, value }
+  } })
+  let tree
+  const props = { t, adapt, configured: true, keyConfigured: true, provider: { provider: 'custom', settingsNs: 'llm-pi-ai', displayName: 'Custom' } }
+  await act(async () => { tree = TestRenderer.create(React.createElement(client.ProviderCompatibility, props)) })
+  assert.equal(tree.root.findAllByType('button').length, 1)
+  assert.equal(JSON.stringify(tree.toJSON()).includes('model-b'), false)
+  assert.equal(JSON.stringify(tree.toJSON()).includes('compat.default'), false)
+  await act(async () => { tree.root.findByType('button').props.onClick() })
+  assert.deepEqual(calls.find(call => call.endpoint === 'compat-enable-model').payload, { provider: 'custom', model: 'model-a' })
+  assert.deepEqual(tree.root.findByType('button').children, ['compat.restore'])
+  await act(async () => { tree.root.findByType('button').props.onClick() })
+  assert.deepEqual(calls.find(call => call.endpoint === 'compat-restore-model').payload, { provider: 'custom', model: 'model-a' })
+  assert.deepEqual(tree.root.findByType('button').children, ['compat.enable'])
+  await act(async () => { tree.unmount() })
+})
+
+test('model settings do not expose actions for drafts, other adapters, or failed requests', async () => {
+  const adapt = client.makeAdaptationService({ call: async () => { throw new Error('disconnected') } })
+  for (const overrides of [{ configured: false }, { provider: { provider: 'custom', settingsNs: 'another-adapter' } }, {}]) {
+    let tree
+    await act(async () => { tree = TestRenderer.create(React.createElement(client.ProviderCompatibility, {
+      t, adapt, configured: true, keyConfigured: true, provider: { provider: 'custom', settingsNs: 'llm-pi-ai' }, ...overrides,
+    })) })
+    if (Object.keys(overrides).length) assert.equal(tree.toJSON(), null)
+    else assert.ok(JSON.stringify(tree.toJSON()).includes('compat.failed'))
+    assert.equal(tree.root.findAllByType('button').length, 0)
+    await act(async () => { tree.unmount() })
+  }
+})
+
+test('provider settings registration uses the native keyed extension, with no compatibility row in General', () => {
+  const registrations = []
+  const ctx = {
+    get: name => ({ modelDirectories: {}, sessions: { subagentAddress: () => undefined } })[name],
+    effect: () => {}, on: () => () => {},
+    slots: { inject: (name, fn) => { if (name !== 'conversation.input.model') fn() }, register: (options, component) => { registrations.push({ options, component }); return () => {} } },
+  }
+  client.apply(ctx)
+  const provider = registrations.find(item => item.options.name === 'settings.models.provider-card')
+  assert.equal(provider.options.key, 'llm-pi-ai')
+  assert.equal(registrations.filter(item => item.options.name === 'settings.general.item').length, 2)
 })

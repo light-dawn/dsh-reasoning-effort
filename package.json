@@ -1,8 +1,8 @@
 {
-  "name": "@ayanehana/dsh-reasoning-effort",
-  "version": "0.9.2",
+  "name": "@light-dawn/dsh-reasoning-effort",
+  "version": "0.10.0-dev.2",
   "icon": "assets/icon.png",
-  "description": "Native DeepSeek Harness model selector integration with a reasoning-effort slider, model-defined levels, animated runner, and Settings-first guidance for custom models.",
+  "description": "Native reasoning slider with per-model, user-enabled DeepSeek request compatibility.",
   "keywords": [
     "deepseek",
     "deepseek-harness",
@@ -15,22 +15,22 @@
     "ui",
     "cordis"
   ],
-  "author": "HanaAyane",
+  "author": "light-dawn",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/HanaAyane/dsh-reasoning-effort.git"
+    "url": "git+https://github.com/light-dawn/dsh-reasoning-effort.git"
   },
-  "homepage": "https://github.com/HanaAyane/dsh-reasoning-effort#readme",
+  "homepage": "https://github.com/light-dawn/dsh-reasoning-effort#readme",
   "publishConfig": {
     "access": "public",
     "registry": "https://registry.npmjs.org/"
   },
   "bugs": {
-    "url": "https://github.com/HanaAyane/dsh-reasoning-effort/issues"
+    "url": "https://github.com/light-dawn/dsh-reasoning-effort/issues"
   },
   "engines": {
     "node": ">=22.19",
-    "dsh": ">=0.2.1-rc.2 <0.3.0"
+    "dsh": "0.2.2-rc.1"
   },
   "type": "module",
   "packageManager": "pnpm@11.7.0",
@@ -61,7 +61,8 @@
     "README.md",
     "README.en.md",
     "CHANGELOG.md",
-    "LICENSE"
+    "LICENSE",
+    "DEVELOPMENT.md"
   ],
   "scripts": {
     "build": "pnpm run build:host && pnpm run build:client && pnpm run build:client-types",
@@ -73,8 +74,10 @@
     "typecheck": "tsc -p tsconfig.json",
     "prepack": "pnpm run build",
     "check:i18n": "node scripts/check-i18n.mjs",
-    "check": "pnpm run typecheck && pnpm run check:i18n && pnpm run check:compat && pnpm run build",
-    "check:compat": "node scripts/check-compat.mjs"
+    "check": "pnpm run typecheck && pnpm run check:i18n && pnpm run check:compat && pnpm run check:compatibility && pnpm run build && pnpm run check:distribution",
+    "check:compat": "node scripts/check-compat.mjs",
+    "check:compatibility": "node scripts/check-configuration.mjs",
+    "check:distribution": "node scripts/check-distribution.mjs"
   },
   "dsh": {
     "bundle": {
@@ -134,5 +137,9 @@
     "react-test-renderer": "18.3.1",
     "typescript": "^6.0.3"
   },
-  "license": "MIT"
+  "license": "MIT",
+  "contributors": [
+    "HanaAyane (upstream author)"
+  ],
+  "private": true
 }

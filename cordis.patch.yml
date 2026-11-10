@@ -2,5 +2,5 @@
 # Runtime defaults live at the plugin's config boundary. Users override them in
 # their profile patch row with the same id.
 - insert:
-    - id: reasoning-effort
-      name: '@ayanehana/dsh-reasoning-effort'
+    - id: light-dawn-reasoning-effort
+      name: '@light-dawn/dsh-reasoning-effort'

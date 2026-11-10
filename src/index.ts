@@ -1,10 +1,10 @@
 /**
- * Host half: read-only reasoning-effort guidance.
+ * Host half: endpoint-scoped compatibility and reasoning-effort guidance.
  *
  * The slider can only offer what the DSH model directory exposes, and the
  * request path validates every submitted effort against that same directory
  * (`UNSUPPORTED_REASONING_EFFORT` otherwise). This half therefore never
- * invents levels and never writes configuration: it diagnoses custom-provider
+ * invents levels for unknown endpoints. It diagnoses custom-provider
  * models the directory under-describes and returns copy-ready
  * `reasoningEfforts` declarations (exact when the knowledge base knows the
  * model, a filled template otherwise) for the user to paste into
@@ -19,8 +19,9 @@ import type { Context } from '@deepseek-ai/cordis'
 import type {} from '@deepseek-ai/dsh-client-connection'
 import z from '@deepseek-ai/schemastery'
 import { BUILTIN_ENTRIES, displayLevels, matchEntry, type KnowledgeEntry } from './knowledge.js'
+import { CompatibilityController, COMPAT_NS, withRawSettings, type Descriptor, type Settings } from './compat/controller.js'
 
-export const name = 'dsh-reasoning-effort'
+export const name = 'light-dawn-reasoning-effort'
 
 /**
  * Hard dependencies: the loader waits for these services before calling
@@ -28,17 +29,20 @@ export const name = 'dsh-reasoning-effort'
  * `connection` is deliberately absent — only Web profiles provide it, so the
  * RPC channel is mounted through `ctx.inject` instead of blocking this row.
  */
-export const inject = ['settings', 'llm']
+export const inject = ['settings', 'llm', 'configEditor']
 
-/** Plugin-owned settings namespace (user-extensible knowledge base only). */
-const STORE_NS = 'dsh-reasoning-effort'
+/** Plugin-owned knowledge base, opt-out, and recovery journal. */
+const STORE_NS = COMPAT_NS
 /** The DSH namespace holding per-provider model declarations. */
 const LLM_NS = 'llm-pi-ai'
 /** Loopback RPC channel shared with the browser half. */
-const RPC_CHANNEL = '/dsh-reasoning-effort'
+const RPC_CHANNEL = '/light-dawn-reasoning-effort'
 
 const StoreSchema = z.object({
   entries: z.array(z.any()).default([]),
+  autoCompat: z.boolean().default(true).volatile(),
+  compatRules: z.array(z.any()).default([]).volatile(),
+  compatJournal: z.array(z.any()).default([]).volatile(),
 })
 export const Config = StoreSchema
 
@@ -49,11 +53,11 @@ interface StoreShape {
 /* eslint-disable @typescript-eslint/no-explicit-any */
 type JsonObject = Record<string, any>
 
-interface HostSettingsService {
+interface HostSettingsService extends Settings {
   readonly writable: boolean
   get?(ns: string): unknown
   register?(ns: string, schema: unknown, options?: JsonObject): SettingsScopeLike
-  describe(): Array<{ ns: string; revision: number; user?: unknown; value?: unknown }>
+  describe(): Descriptor[]
   prepareDocument(): Promise<string | undefined>
 }
 
@@ -291,6 +295,28 @@ export function apply(ctx: Context, config?: StoreShape): void {
     return isRecord(value) ? (value as unknown as StoreShape) : {}
   }
 
+  const compatibility = new CompatibilityController(withRawSettings(settingsService, ctx.get('configEditor') as Parameters<typeof withRawSettings>[1]))
+  // Coalesce native settings notifications, including our own write events.
+  // The second scan observes an idempotent plan and performs no writes.
+  let scheduled: ReturnType<typeof setTimeout> | undefined
+  let disposed = false
+  const schedule = () => {
+    if (disposed) return
+    if (scheduled !== undefined) return
+    scheduled = setTimeout(() => { scheduled = undefined; void compatibility.run() }, 40)
+  }
+  if (typeof ctx.on === 'function') {
+    ctx.on('settings/document-updated' as never, ((ns: string) => {
+      if (ns === LLM_NS || ns === STORE_NS) schedule()
+    }) as never)
+    ctx.on('loader/volatile-update' as never, schedule as never)
+    ctx.on('app-boot/config-reload' as never, schedule as never)
+    ctx.effect(() => () => { disposed = true; if (scheduled !== undefined) clearTimeout(scheduled); compatibility.close() }, 'compatibility: lifecycle')
+    schedule()
+    const loader = ctx.root?.get('loader') as { await(): Promise<unknown> } | undefined
+    void loader?.await().then(schedule, () => undefined)
+  }
+
   /** The active configuration document path, memoized. */
   let settingsPathPromise: Promise<string | undefined> | undefined
   const settingsPath = (): Promise<string | undefined> => {
@@ -413,6 +439,16 @@ export function apply(ctx: Context, config?: StoreShape): void {
   /** Answer one decoded endpoint with the result envelope the browser half parses. */
   async function answer(endpoint: string, payload: unknown): Promise<JsonObject> {
     switch (endpoint) {
+      case 'compat-status':
+        return okResult(await compatibility.run('status'))
+      case 'compat-enable-model':
+      case 'compat-restore-model':
+      case 'compat-repair': {
+        const request = isRecord(payload) ? payload : {}
+        if (typeof request.provider !== 'string' || typeof request.model !== 'string') return failResult('invalid-request', 'provider and model are required')
+        const action = endpoint === 'compat-enable-model' ? 'enable-model' : endpoint === 'compat-restore-model' ? 'restore-model' : 'repair'
+        return okResult(await compatibility.run(action, { provider: request.provider, model: request.model }))
+      }
       case 'diagnose': {
         const request = isRecord(payload) ? payload : {}
         const provider = typeof request.provider === 'string' ? request.provider : ''

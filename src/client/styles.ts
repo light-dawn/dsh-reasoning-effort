@@ -418,6 +418,22 @@ export const CSS = `
   line-height: 18px;
 }
 .re-setting-control { display: inline-flex; align-items: center; gap: 10px; flex: none; }
+.re-provider-compat { padding: 12px 0 4px; color: var(--dsw-alias-label-primary, inherit); }
+.re-provider-compat-heading { font-size: 13px; line-height: 20px; font-weight: 500; }
+.re-provider-compat-description { margin: 4px 0 10px; color: var(--dsw-alias-label-tertiary, #9296a0); font-size: 12px; line-height: 18px; }
+.re-provider-compat-model { padding: 8px 0; }
+.re-provider-compat-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.re-provider-compat-copy { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.re-provider-compat-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; }
+.re-provider-compat-ready { color: var(--dsw-alias-label-tertiary, #9296a0); font-size: 12px; flex: none; }
+.re-provider-compat-button { appearance: none; flex: none; border: 1px solid var(--dsw-alias-border-l2, rgba(121,126,145,.3)); border-radius: 8px; padding: 6px 11px; background: transparent; color: inherit; font: inherit; font-size: 12px; line-height: 18px; cursor: pointer; }
+.re-provider-compat-button:hover:not(:disabled) { background: var(--dsw-alias-interactive-bg-hover, rgba(128,128,128,.12)); }
+.re-provider-compat-button:focus-visible { outline: 2px solid var(--dsw-focus-ring-color, #6f83ff); outline-offset: 2px; }
+.re-provider-compat-button:disabled { cursor: default; opacity: .5; }
+.re-provider-compat-conflict { margin-top: 8px; font-size: 12px; line-height: 18px; color: var(--dsw-alias-label-secondary, #9296a0); }
+.re-provider-compat-conflict summary { cursor: pointer; }
+.re-provider-compat-conflict p { margin: 8px 0; }
+.re-provider-compat-error { margin: 8px 0; color: var(--dsw-alias-state-error-primary, #d97762); font-size: 12px; }
 /* Match DSH ui-primitives/Switch.module.css, including its theme tokens and
    round corners (the host globally uses superellipses). */
 .re-setting-switch {

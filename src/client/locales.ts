@@ -1,10 +1,35 @@
 /** Locale dictionaries for the reasoning-effort model control and settings rows. */
 
 /** Namespace registered with DSH's client locale service. */
-export const NS = 'reasoning-effort'
+export const NS = 'light-dawn-reasoning-effort'
 
 /** Simplified Chinese dictionary and key-set source of truth. */
 export const zh = {
+  'compat.title': 'DeepSeek 请求兼容',
+  'compat.description': '为支持 DeepSeek 思考格式的模型启用关闭、低、高、最大四档。',
+  'compat.default': '“默认”沿用提供商已配置的强度。DSH 0.2.2-rc.1 未配置默认强度时会关闭思考；需要思考请明确选择低、高或最大。插件不会替你选择默认档位。',
+  'compat.active': '自动兼容已启用',
+  'compat.empty': '保存自定义模型后，可在这里启用。',
+  'compat.detected': '待应用',
+  'compat.applied': '已启用',
+  'compat.compatible': '配置已兼容',
+  'compat.conflict': '已有设置与此方案不同',
+  'compat.disabled': '已关闭推理',
+  'compat.unsupported': '当前设置接口或适配器不支持自动兼容',
+  'compat.failed': '未能保存，请重试。现有设置已保留。',
+  'compat.paused': '自动兼容已暂停',
+  'compat.fields': '应用此方案将替换：{fields}',
+  'compat.repair': '按此方案修复',
+  'compat.restore': '关闭推理强度',
+  'compat.enable': '开启推理强度',
+  'compat.restoreNote': '停止自动维护，只撤回本插件写入且未被改动的设置。',
+  'compat.saving': '保存中…',
+  'compat.unsupportedModel': '暂不支持',
+  'compat.field.efforts': '推理档位',
+  'compat.field.request': '请求兼容设置',
+  'compat.field.format': '思考格式',
+  'compat.field.role': '指令角色',
+  'compat.field.history': '思考历史回放',
   'level.off': '关闭',
   'level.minimal': '极低',
   'level.low': '低',
@@ -93,6 +118,31 @@ export type ReasoningEffortLocaleKey = keyof typeof zh
 
 /** English dictionary, checked against the Chinese key set. */
 export const en = {
+  'compat.title': 'DeepSeek request compatibility',
+  'compat.description': 'Enable Off, Low, High, and Max for models that support the DeepSeek thinking format.',
+  'compat.default': 'Default uses the configured provider effort. DSH 0.2.2-rc.1 disables thinking when no default is configured; select Low, High, or Max to think. The plugin does not choose a default for you.',
+  'compat.active': 'Automatic compatibility enabled',
+  'compat.empty': 'Save a custom model to enable compatibility here.',
+  'compat.detected': 'Pending application',
+  'compat.applied': 'Enabled',
+  'compat.compatible': 'Already compatible',
+  'compat.conflict': 'Existing settings differ from this preset',
+  'compat.disabled': 'Reasoning disabled',
+  'compat.unsupported': 'Settings API or adapter does not support automatic compatibility',
+  'compat.failed': 'Could not save. Retry; existing settings have been kept.',
+  'compat.paused': 'Automatic compatibility paused',
+  'compat.fields': 'This preset will replace: {fields}',
+  'compat.repair': 'Apply this preset',
+  'compat.restore': 'Disable reasoning control',
+  'compat.enable': 'Enable reasoning control',
+  'compat.restoreNote': 'Stop automatic maintenance and revert only unchanged plugin values.',
+  'compat.saving': 'Saving…',
+  'compat.unsupportedModel': 'Unavailable',
+  'compat.field.efforts': 'reasoning levels',
+  'compat.field.request': 'request compatibility',
+  'compat.field.format': 'thinking format',
+  'compat.field.role': 'instruction role',
+  'compat.field.history': 'thinking history replay',
   'level.off': 'Off',
   'level.minimal': 'Minimal',
   'level.low': 'Low',
@@ -178,7 +228,7 @@ export const en = {
 
 declare module '@deepseek-ai/dsh-client-ui-slots' {
   interface LocaleNamespaceMap {
-    'reasoning-effort': ReasoningEffortLocaleKey
+    'light-dawn-reasoning-effort': ReasoningEffortLocaleKey
   }
 }
 

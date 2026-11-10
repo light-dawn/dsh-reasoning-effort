@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented in this file.
 
+## [0.10.0-dev.2] - Development
+
+- Add per-model reasoning controls to the native provider settings card.
+- Apply DeepSeek compatibility only after an explicit model choice, bound to the configured endpoint.
+- Preserve custom settings, expose conflicts, and restore only unchanged plugin values.
+- Maintain enabled models on startup and native configuration changes without opening Settings.
+- Add configuration, transport, and distribution checks. Retain upstream slider, animation, and MIT attribution.
+
 ## [0.9.2] - 2026-11-09
 
 This maintenance update focuses on interaction performance and bug fixes ahead of the next major update.
